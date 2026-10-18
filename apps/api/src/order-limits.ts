@@ -1,0 +1,2 @@
+export const MAX_QUANTITY_PER_PRODUCT = 10;
+export const MAX_PRODUCTS_PER_ORDER = 20;

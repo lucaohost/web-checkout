@@ -8,4 +8,4 @@ Conduza toda a conversa em **português**, incluindo a documentação gerada. S�
 
 Call the Skill tool twice, for "grilling" and "domain-modeling".
 
-**Modo de entrevista — todas as perguntas de uma vez só**: ignore as rodadas (rounds) do grilling. Construa a árvore de decisão completa primeiro e apresente todas as perguntas em uma única mensagem, numeradas, cada uma com a sua resposta recomendada. Inclua também as perguntas que dependem da resposta de outras — o usuário responde tudo de uma vez. Só reitere se as respostas abrirem decisões novas.
+Glossário e ADRs saem das respostas escritas em **Sua resposta**, depois que o arquivo volta. Siga o domain-modeling para o que registrar.

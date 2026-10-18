@@ -1,0 +1,99 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "web-checkout API",
+    "description": "Self-service checkout for a snack bar. Staff endpoints need the X-Staff-Key header.",
+    "version": "1.0.0"
+  },
+  "components": {
+    "schemas": {}
+  },
+  "paths": {
+    "/menu": {
+      "get": {
+        "summary": "The Menu, grouped by Category, with live Availability",
+        "tags": [
+          "kiosk"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "categories"
+                  ],
+                  "properties": {
+                    "categories": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "name",
+                          "products"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "products": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "id",
+                                "name",
+                                "emoji",
+                                "priceCents",
+                                "availability",
+                                "maxQuantity"
+                              ],
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "emoji": {
+                                  "type": "string"
+                                },
+                                "priceCents": {
+                                  "type": "integer"
+                                },
+                                "availability": {
+                                  "type": "string",
+                                  "enum": [
+                                    "AVAILABLE",
+                                    "LAST_UNITS",
+                                    "SOLD_OUT"
+                                  ]
+                                },
+                                "maxQuantity": {
+                                  "type": "integer",
+                                  "description": "Most units of this Product a single Order can take right now"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
