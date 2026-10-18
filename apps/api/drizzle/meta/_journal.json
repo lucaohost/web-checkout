@@ -8,6 +8,13 @@
       "when": 1792365401355,
       "tag": "0000_menu",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792366469856,
+      "tag": "0001_checkouts",
+      "breakpoints": true
     }
   ]
 }

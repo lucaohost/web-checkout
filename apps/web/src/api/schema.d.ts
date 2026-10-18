@@ -57,6 +57,255 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/checkouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm a Cart: check prices, reserve Stock for 3 minutes */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID v4, reused when repeating the same request */
+                    "idempotency-key": string;
+                    "x-kiosk-id"?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            productId: string;
+                            quantity: number;
+                            /** @description The price the Customer saw */
+                            unitPriceCents: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            checkoutId: string;
+                            /** @enum {string} */
+                            status: "ACTIVE" | "PAYING" | "CONSUMED" | "RELEASED";
+                            totalCents: number;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                            cardAttemptsLeft: number;
+                            cardAllowed: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                            conflicts?: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string | null;
+                                reasons: ("SOLD_OUT" | "NOT_ENOUGH_STOCK" | "PRICE_CHANGED")[];
+                                requestedQuantity: number;
+                                /** @description How many of the requested units can be reserved */
+                                availableQuantity: number;
+                                seenUnitPriceCents: number;
+                                currentUnitPriceCents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/checkouts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The current state of a Checkout, to recover after a lost connection */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            checkoutId: string;
+                            /** @enum {string} */
+                            status: "ACTIVE" | "PAYING" | "CONSUMED" | "RELEASED";
+                            totalCents: number;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                            cardAttemptsLeft: number;
+                            cardAllowed: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Abandon a Checkout and return its reserved Stock */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            checkoutId: string;
+                            /** @enum {string} */
+                            status: "ACTIVE" | "PAYING" | "CONSUMED" | "RELEASED";
+                            totalCents: number;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                            cardAttemptsLeft: number;
+                            cardAllowed: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

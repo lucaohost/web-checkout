@@ -1,5 +1,6 @@
 import { asc } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
+import { releaseExpiredCheckouts } from "../checkout/checkout-service.ts";
 import type { Database } from "../db/client.ts";
 import { categories, products } from "../db/schema.ts";
 import { describeAvailability } from "./availability.ts";
@@ -33,6 +34,7 @@ export function registerMenuRoutes(app: FastifyInstance, { db, clock }: { db: Da
 
   app.get("/menu", { schema: menuSchema }, async () => {
     const menu = await cachedMenu();
+    await releaseExpiredCheckouts(db, clock());
     const stockRows = await db.select({ id: products.id, stock: products.stock }).from(products);
     const stockById = new Map(stockRows.map((row) => [row.id, row.stock]));
 
