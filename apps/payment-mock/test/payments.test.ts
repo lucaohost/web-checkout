@@ -92,6 +92,18 @@ describe("charges", () => {
     expect(Date.now() - startedAt).toBeGreaterThanOrEqual(300);
   });
 
+  it("keeps answering too late to repeats while forced with timeout, like a provider that is down", async () => {
+    const app = mock({ timeoutDelayMs: 150 });
+    const key = randomUUID();
+    await charge(app, key, 1700, "timeout");
+    const startedAt = Date.now();
+
+    const repeat = await charge(app, key, 1700, "timeout");
+
+    expect(repeat.statusCode).toBe(201);
+    expect(Date.now() - startedAt).toBeGreaterThanOrEqual(150);
+  });
+
   it("approves slowly when forced with slow", async () => {
     const app = mock({ slowDelayMs: 120 });
     const startedAt = Date.now();

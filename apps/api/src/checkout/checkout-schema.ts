@@ -1,9 +1,10 @@
 import { errorSchema, idempotencyHeadersSchema, uuidParamsSchema } from "../http-schemas.ts";
 import { MAX_PRODUCTS_PER_ORDER, MAX_QUANTITY_PER_PRODUCT } from "../order-limits.ts";
+import { orderViewSchema } from "../orders/order-schema.ts";
 
 export const checkoutViewSchema = {
   type: "object",
-  required: ["checkoutId", "status", "totalCents", "expiresAt", "items", "cardAttemptsLeft", "cardAllowed"],
+  required: ["checkoutId", "status", "totalCents", "expiresAt", "items", "cardAttemptsLeft", "cardAllowed", "order"],
   properties: {
     checkoutId: { type: "string", format: "uuid" },
     status: { type: "string", enum: ["ACTIVE", "PAYING", "CONSUMED", "RELEASED"] },
@@ -25,6 +26,45 @@ export const checkoutViewSchema = {
     },
     cardAttemptsLeft: { type: "integer" },
     cardAllowed: { type: "boolean" },
+    order: { ...orderViewSchema, type: ["object", "null"], description: "The Order, once the Checkout became one" },
+  },
+} as const;
+
+const paymentProblemSchema = {
+  type: "object",
+  required: ["error", "message", "options", "cardAttemptsLeft"],
+  properties: {
+    error: { type: "string", enum: ["PAYMENT_DECLINED", "PAYMENT_FAILED", "PAYMENT_UNCONFIRMED"] },
+    message: { type: "string" },
+    reason: { type: "string", description: "Why the issuer declined, for PAYMENT_DECLINED" },
+    options: { type: "array", items: { type: "string", enum: ["TRY_ANOTHER_CARD", "PAY_AT_PICKUP", "CANCEL"] } },
+    cardAttemptsLeft: { type: "integer" },
+  },
+} as const;
+
+export const payCheckoutSchema = {
+  tags: ["kiosk"],
+  summary: "Pay a Checkout by card, or choose Pay at Pickup; either way an Order is placed on success",
+  headers: {
+    ...idempotencyHeadersSchema,
+    properties: {
+      ...idempotencyHeadersSchema.properties,
+      "x-force-error": { type: "string", description: "Demo only, ignored in production: forces a payment outcome" },
+    },
+  },
+  params: uuidParamsSchema,
+  body: {
+    type: "object",
+    required: ["method"],
+    additionalProperties: false,
+    properties: { method: { type: "string", enum: ["CARD", "PAY_AT_PICKUP"] } },
+  },
+  response: {
+    201: orderViewSchema,
+    402: paymentProblemSchema,
+    404: errorSchema,
+    409: errorSchema,
+    410: errorSchema,
   },
 } as const;
 

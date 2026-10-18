@@ -79,6 +79,7 @@ export function buildApp(options: MockOptions) {
         if (existing.amountCents !== amountCents) {
           return reply.code(422).send({ error: "KEY_REUSED_WITH_DIFFERENT_AMOUNT" });
         }
+        if (forcedError(request, ["timeout"])) await sleep(options.timeoutDelayMs);
         const { statusCode, body } = chargeReply(existing);
         return reply.code(statusCode).send(body);
       }

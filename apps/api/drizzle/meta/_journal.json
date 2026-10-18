@@ -15,6 +15,13 @@
       "when": 1792366469856,
       "tag": "0001_checkouts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792367049171,
+      "tag": "0002_payments_and_orders",
+      "breakpoints": true
     }
   ]
 }

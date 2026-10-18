@@ -1,6 +1,7 @@
-import { and, asc, eq, gte, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import type { Database } from "../db/client.ts";
-import { checkoutItems, checkouts, products } from "../db/schema.ts";
+import { checkoutItems, checkouts, paymentAttempts, products } from "../db/schema.ts";
+import { getOrderViewByCheckout } from "../orders/orders.ts";
 
 export const CHECKOUT_TTL_MS = 3 * 60 * 1000;
 export const MAX_CARD_ATTEMPTS = 3;
@@ -197,7 +198,12 @@ export async function getCheckoutView(db: Database, checkoutId: string) {
     .where(eq(checkoutItems.checkoutId, checkoutId))
     .orderBy(asc(checkoutItems.position));
 
-  const cardAttemptsLeft = MAX_CARD_ATTEMPTS;
+  const [{ attempts } = { attempts: 0 }] = await db
+    .select({ attempts: count() })
+    .from(paymentAttempts)
+    .where(eq(paymentAttempts.checkoutId, checkoutId));
+  const cardAttemptsLeft = checkout.cardChargeUnconfirmed ? 0 : Math.max(0, MAX_CARD_ATTEMPTS - attempts);
+
   return {
     checkoutId: checkout.id,
     status: checkout.status,
@@ -205,7 +211,8 @@ export async function getCheckoutView(db: Database, checkoutId: string) {
     expiresAt: checkout.expiresAt.toISOString(),
     items,
     cardAttemptsLeft,
-    cardAllowed: !checkout.cardChargeUnconfirmed && cardAttemptsLeft > 0,
+    cardAllowed: cardAttemptsLeft > 0,
+    order: await getOrderViewByCheckout(db, checkoutId),
   };
 }
 

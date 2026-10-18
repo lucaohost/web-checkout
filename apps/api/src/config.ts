@@ -11,6 +11,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     corsOrigin: env.CORS_ORIGIN ?? "http://localhost:5173",
     paymentProviderUrl: env.PAYMENT_PROVIDER_URL ?? "http://localhost:4000",
     paymentTimeoutMs: Number(env.PAYMENT_TIMEOUT_MS ?? 3000),
+    /** The automatic retry waits between this and twice this, with jitter. */
+    paymentRetryDelayMs: Number(env.PAYMENT_RETRY_DELAY_MS ?? 200),
+    sweepIntervalMs: Number(env.SWEEP_INTERVAL_MS ?? 5000),
+    refundBackoffMs: Number(env.REFUND_BACKOFF_MS ?? 2000),
+    refundMaxTries: Number(env.REFUND_MAX_TRIES ?? 5),
     staffKey,
     forwardForceError: !production,
     seedMenu: env.SEED_MENU !== "false",

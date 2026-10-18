@@ -12,6 +12,24 @@ export function postCheckout(app: FastifyInstance, items: CheckoutItem[], key: s
   });
 }
 
+export function pay(
+  app: FastifyInstance,
+  checkoutId: string,
+  method: "CARD" | "PAY_AT_PICKUP",
+  { key = randomUUID(), forceError }: { key?: string; forceError?: string } = {},
+) {
+  return app.inject({
+    method: "POST",
+    url: `/checkouts/${checkoutId}/payment`,
+    headers: {
+      "idempotency-key": key,
+      "x-kiosk-id": "kiosk-1",
+      ...(forceError ? { "x-force-error": forceError } : {}),
+    },
+    payload: { method },
+  });
+}
+
 export async function availabilityOf(app: FastifyInstance, productName: string) {
   const response = await app.inject({ method: "GET", url: "/menu" });
   const products = response

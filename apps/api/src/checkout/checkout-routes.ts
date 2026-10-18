@@ -1,7 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import type { Database } from "../db/client.ts";
 import { createIdempotency, kioskIdOf } from "../idempotency/idempotency.ts";
-import { cancelCheckoutSchema, createCheckoutSchema, getCheckoutSchema } from "./checkout-schema.ts";
+import { cancelCheckoutSchema, createCheckoutSchema, getCheckoutSchema, payCheckoutSchema } from "./checkout-schema.ts";
+import { type PaymentDeps, payCheckout } from "./payment-service.ts";
 import {
   type CheckoutItemInput,
   cancelCheckout,
@@ -12,8 +13,27 @@ import {
 
 const notFound = { error: "CHECKOUT_NOT_FOUND", message: "There is no Checkout with this id." };
 
-export function registerCheckoutRoutes(app: FastifyInstance, { db, clock }: { db: Database; clock: () => Date }) {
+export function registerCheckoutRoutes(
+  app: FastifyInstance,
+  { db, clock, payments, forwardForceError }: { db: Database; clock: () => Date; payments: PaymentDeps; forwardForceError: boolean },
+) {
   const idempotent = createIdempotency(db, clock);
+
+  app.post<{ Params: { id: string }; Body: { method: "CARD" | "PAY_AT_PICKUP" } }>(
+    "/checkouts/:id/payment",
+    { schema: payCheckoutSchema },
+    (request, reply) =>
+      idempotent(request, reply, () => {
+        const forced = request.headers["x-force-error"];
+        const forceError = forwardForceError && typeof forced === "string" ? forced : undefined;
+        return payCheckout(
+          { ...payments, log: request.log },
+          request.params.id,
+          request.body.method,
+          { requestId: request.id, ...(forceError ? { forceError } : {}) },
+        );
+      }),
+  );
 
   app.post<{ Body: { items: CheckoutItemInput[] } }>("/checkouts", { schema: createCheckoutSchema }, (request, reply) =>
     idempotent(request, reply, async () => {
