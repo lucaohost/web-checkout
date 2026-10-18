@@ -1,4 +1,5 @@
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyError } from "fastify";
@@ -7,6 +8,7 @@ import type { PaymentDeps } from "./checkout/payment-service.ts";
 import { type Config, loadConfig } from "./config.ts";
 import type { Database } from "./db/client.ts";
 import { registerMenuRoutes } from "./menu/menu-routes.ts";
+import { registerStaffRoutes } from "./orders/staff-routes.ts";
 import { createHttpPaymentProvider } from "./payments/http-payment-provider.ts";
 import type { PaymentProvider } from "./payments/payment-provider.ts";
 import { startSweep } from "./sweep.ts";
@@ -43,12 +45,16 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
     if (error.validation) {
       return reply.code(400).send({ error: "VALIDATION_FAILED", message: error.message });
     }
+    if (error.statusCode && error.statusCode < 500) {
+      return reply.code(error.statusCode).send({ error: error.code ?? "REQUEST_REJECTED", message: error.message });
+    }
     request.log.error({ err: error }, "unexpected error");
     return reply.code(500).send({ error: "INTERNAL_ERROR", message: "Something went wrong on our side." });
   });
 
   app.register(cors, {
-    origin: config.corsOrigin,
+    // A list, so a stranger's origin gets no CORS headers at all instead of the kiosk's.
+    origin: [config.corsOrigin],
     methods: ["GET", "POST", "DELETE"],
     allowedHeaders: [
       "Content-Type",
@@ -66,13 +72,28 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
         description: "Self-service checkout for a snack bar. Staff endpoints need the X-Staff-Key header.",
         version: "1.0.0",
       },
+      components: {
+        securitySchemes: { staffKey: { type: "apiKey", in: "header", name: "X-Staff-Key" } },
+      },
     },
   });
   app.register(swaggerUi, { routePrefix: "/docs" });
 
-  app.register(async (instance) => {
-    registerMenuRoutes(instance, { db, clock });
-    registerCheckoutRoutes(instance, { db, clock, payments, forwardForceError: config.forwardForceError });
+  app.register(async (kiosk) => {
+    await kiosk.register(rateLimit, {
+      max: config.rateLimitPerMinute,
+      timeWindow: "1 minute",
+      keyGenerator: (request) => {
+        const kioskId = request.headers["x-kiosk-id"];
+        return typeof kioskId === "string" ? `kiosk:${kioskId}` : `ip:${request.ip}`;
+      },
+    });
+    registerMenuRoutes(kiosk, { db, clock });
+    registerCheckoutRoutes(kiosk, { db, clock, payments, forwardForceError: config.forwardForceError });
+  });
+
+  app.register(async (staff) => {
+    registerStaffRoutes(staff, { payments, staffKey: config.staffKey });
   });
 
   let stopSweep = () => {};

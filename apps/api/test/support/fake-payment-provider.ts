@@ -8,6 +8,7 @@ type Charge = { amountCents: number; status: "APPROVED" | "DECLINED"; reason?: s
 export function createFakePaymentProvider() {
   const charges = new Map<string, Charge>();
   const chargeCalls: { key: string; amountCents: number; context: ProviderContext }[] = [];
+  const refundCalls: string[] = [];
   const failNext: ProviderError[] = [];
 
   const reply = (charge: Charge): ChargeResult =>
@@ -41,6 +42,7 @@ export function createFakePaymentProvider() {
     },
 
     async refund(key, context) {
+      refundCalls.push(key);
       if (context.forceError === "server_error" || context.forceError === "timeout") {
         return { kind: "error", error: context.forceError };
       }
@@ -54,6 +56,7 @@ export function createFakePaymentProvider() {
   return {
     provider,
     chargeCalls,
+    refundCalls,
     /** The next charges fail with this error before reaching the "provider", charging nothing. */
     failNextCharges(count: number, error: ProviderError) {
       for (let i = 0; i < count; i++) failNext.push(error);

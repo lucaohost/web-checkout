@@ -6,6 +6,13 @@
     "version": "1.0.0"
   },
   "components": {
+    "securitySchemes": {
+      "staffKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Staff-Key"
+      }
+    },
     "schemas": {}
   },
   "paths": {
@@ -1095,6 +1102,755 @@
                       },
                       "description": "The Order, once the Checkout became one",
                       "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders": {
+      "get": {
+        "summary": "Recent Orders for the counter, newest first",
+        "tags": [
+          "staff"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PAYMENT_PENDING",
+                "PAID",
+                "PICKED_UP",
+                "CANCELLED"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{1,3}$"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "security": [
+          {
+            "staffKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orders"
+                  ],
+                  "properties": {
+                    "orders": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "orderId",
+                          "code",
+                          "status",
+                          "paymentMethod",
+                          "totalCents",
+                          "cardChargeUnconfirmed",
+                          "createdAt",
+                          "items"
+                        ],
+                        "properties": {
+                          "orderId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "code": {
+                            "type": "string",
+                            "description": "Short code the Customer reads out at pickup, such as A-042"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PAYMENT_PENDING",
+                              "PAID",
+                              "PICKED_UP",
+                              "CANCELLED"
+                            ]
+                          },
+                          "paymentMethod": {
+                            "type": "string",
+                            "enum": [
+                              "CARD",
+                              "PAY_AT_PICKUP"
+                            ]
+                          },
+                          "totalCents": {
+                            "type": "integer"
+                          },
+                          "cardChargeUnconfirmed": {
+                            "type": "boolean",
+                            "description": "A card charge for this purchase could not be confirmed and is being refunded"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "productId",
+                                "name",
+                                "emoji",
+                                "quantity",
+                                "unitPriceCents"
+                              ],
+                              "properties": {
+                                "productId": {
+                                  "type": "string",
+                                  "format": "uuid"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "emoji": {
+                                  "type": "string"
+                                },
+                                "quantity": {
+                                  "type": "integer"
+                                },
+                                "unitPriceCents": {
+                                  "type": "integer"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "summary": "One Order",
+        "tags": [
+          "staff"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "staffKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orderId",
+                    "code",
+                    "status",
+                    "paymentMethod",
+                    "totalCents",
+                    "cardChargeUnconfirmed",
+                    "createdAt",
+                    "items"
+                  ],
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Short code the Customer reads out at pickup, such as A-042"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PAYMENT_PENDING",
+                        "PAID",
+                        "PICKED_UP",
+                        "CANCELLED"
+                      ]
+                    },
+                    "paymentMethod": {
+                      "type": "string",
+                      "enum": [
+                        "CARD",
+                        "PAY_AT_PICKUP"
+                      ]
+                    },
+                    "totalCents": {
+                      "type": "integer"
+                    },
+                    "cardChargeUnconfirmed": {
+                      "type": "boolean",
+                      "description": "A card charge for this purchase could not be confirmed and is being refunded"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "productId",
+                          "name",
+                          "emoji",
+                          "quantity",
+                          "unitPriceCents"
+                        ],
+                        "properties": {
+                          "productId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "emoji": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "integer"
+                          },
+                          "unitPriceCents": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/mark-paid": {
+      "post": {
+        "summary": "The Customer paid a Pay at Pickup Order at the counter",
+        "tags": [
+          "staff"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "staffKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orderId",
+                    "code",
+                    "status",
+                    "paymentMethod",
+                    "totalCents",
+                    "cardChargeUnconfirmed",
+                    "createdAt",
+                    "items"
+                  ],
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Short code the Customer reads out at pickup, such as A-042"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PAYMENT_PENDING",
+                        "PAID",
+                        "PICKED_UP",
+                        "CANCELLED"
+                      ]
+                    },
+                    "paymentMethod": {
+                      "type": "string",
+                      "enum": [
+                        "CARD",
+                        "PAY_AT_PICKUP"
+                      ]
+                    },
+                    "totalCents": {
+                      "type": "integer"
+                    },
+                    "cardChargeUnconfirmed": {
+                      "type": "boolean",
+                      "description": "A card charge for this purchase could not be confirmed and is being refunded"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "productId",
+                          "name",
+                          "emoji",
+                          "quantity",
+                          "unitPriceCents"
+                        ],
+                        "properties": {
+                          "productId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "emoji": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "integer"
+                          },
+                          "unitPriceCents": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/pick-up": {
+      "post": {
+        "summary": "Hand a paid Order to the Customer",
+        "tags": [
+          "staff"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "staffKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orderId",
+                    "code",
+                    "status",
+                    "paymentMethod",
+                    "totalCents",
+                    "cardChargeUnconfirmed",
+                    "createdAt",
+                    "items"
+                  ],
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Short code the Customer reads out at pickup, such as A-042"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PAYMENT_PENDING",
+                        "PAID",
+                        "PICKED_UP",
+                        "CANCELLED"
+                      ]
+                    },
+                    "paymentMethod": {
+                      "type": "string",
+                      "enum": [
+                        "CARD",
+                        "PAY_AT_PICKUP"
+                      ]
+                    },
+                    "totalCents": {
+                      "type": "integer"
+                    },
+                    "cardChargeUnconfirmed": {
+                      "type": "boolean",
+                      "description": "A card charge for this purchase could not be confirmed and is being refunded"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "productId",
+                          "name",
+                          "emoji",
+                          "quantity",
+                          "unitPriceCents"
+                        ],
+                        "properties": {
+                          "productId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "emoji": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "integer"
+                          },
+                          "unitPriceCents": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{id}/cancel": {
+      "post": {
+        "summary": "Cancel an Order: its Stock returns, and a card payment is refunded",
+        "tags": [
+          "staff"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "staffKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "orderId",
+                    "code",
+                    "status",
+                    "paymentMethod",
+                    "totalCents",
+                    "cardChargeUnconfirmed",
+                    "createdAt",
+                    "items"
+                  ],
+                  "properties": {
+                    "orderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "Short code the Customer reads out at pickup, such as A-042"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PAYMENT_PENDING",
+                        "PAID",
+                        "PICKED_UP",
+                        "CANCELLED"
+                      ]
+                    },
+                    "paymentMethod": {
+                      "type": "string",
+                      "enum": [
+                        "CARD",
+                        "PAY_AT_PICKUP"
+                      ]
+                    },
+                    "totalCents": {
+                      "type": "integer"
+                    },
+                    "cardChargeUnconfirmed": {
+                      "type": "boolean",
+                      "description": "A card charge for this purchase could not be confirmed and is being refunded"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "productId",
+                          "name",
+                          "emoji",
+                          "quantity",
+                          "unitPriceCents"
+                        ],
+                        "properties": {
+                          "productId": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "emoji": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "integer"
+                          },
+                          "unitPriceCents": {
+                            "type": "integer"
+                          }
+                        }
+                      }
                     }
                   }
                 }

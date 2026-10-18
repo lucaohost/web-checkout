@@ -16,6 +16,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     sweepIntervalMs: Number(env.SWEEP_INTERVAL_MS ?? 5000),
     refundBackoffMs: Number(env.REFUND_BACKOFF_MS ?? 2000),
     refundMaxTries: Number(env.REFUND_MAX_TRIES ?? 5),
+    rateLimitPerMinute: Number(env.RATE_LIMIT_PER_MINUTE ?? 120),
     staffKey,
     forwardForceError: !production,
     seedMenu: env.SEED_MENU !== "false",
