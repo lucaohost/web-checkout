@@ -40,6 +40,14 @@ describe("CORS", () => {
     expect(stranger.headers["access-control-allow-origin"]).toBeUndefined();
   });
 
+  it("treats localhost and 127.0.0.1 as the same kiosk", async () => {
+    const app = start();
+
+    const loopback = await preflight(app, "http://127.0.0.1:5173");
+
+    expect(loopback.headers["access-control-allow-origin"]).toBe("http://127.0.0.1:5173");
+  });
+
   it("accepts the demo's X-Force-Error header only outside production", async () => {
     const demo = await preflight(start(), KIOSK_ORIGIN, "x-force-error");
     const production = await preflight(start({ forwardForceError: false }), KIOSK_ORIGIN, "x-force-error");

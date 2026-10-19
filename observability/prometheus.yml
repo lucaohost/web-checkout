@@ -4,5 +4,6 @@ global:
 scrape_configs:
   - job_name: api
     static_configs:
-      - targets: ["api:3000"]
+      # Host port 3000 is the API whether it is the Compose container or a local process.
+      - targets: ["host.docker.internal:3000"]
     metrics_path: /metrics

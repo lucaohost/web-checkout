@@ -5,7 +5,7 @@ import swaggerUi from "@fastify/swagger-ui";
 import Fastify, { type FastifyError } from "fastify";
 import { registerCheckoutRoutes } from "./checkout/checkout-routes.ts";
 import type { PaymentDeps } from "./checkout/payment-service.ts";
-import { type Config, loadConfig } from "./config.ts";
+import { type Config, loadConfig, resolveCorsOrigins } from "./config.ts";
 import type { Database } from "./db/client.ts";
 import { registerMenuRoutes } from "./menu/menu-routes.ts";
 import { createMetrics } from "./observability/metrics.ts";
@@ -59,7 +59,7 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
 
   app.register(cors, {
     // A list, so a stranger's origin gets no CORS headers at all instead of the kiosk's.
-    origin: [config.corsOrigin],
+    origin: resolveCorsOrigins(config.corsOrigin),
     methods: ["GET", "POST", "DELETE"],
     allowedHeaders: [
       "Content-Type",

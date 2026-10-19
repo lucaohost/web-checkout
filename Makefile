@@ -16,6 +16,7 @@ test:
 	cd apps/payment-mock && npm test
 	cd apps/api && npm test
 	cd apps/web && npm test
+	cd apps/web && npm run e2e
 
 typecheck:
 	cd apps/api && npm run typecheck

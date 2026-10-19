@@ -8,7 +8,7 @@ The kiosk is a public, unattended screen, so the API trusts nothing the client s
 
 - **No authentication at the kiosk.** Customers are anonymous and kiosks carry no secret. This is an accepted risk: anyone who reaches the API can place orders.
 - **A shared staff key.** The staff endpoints that move Orders between statuses ([ADR-0013](./0013-order-lifecycle-staff-endpoints.md)) require the `X-Staff-Key` header to match a key set by environment variable.
-- **CORS** allows only the frontend's origin. `X-Force-Error` is an allowed header only outside production.
+- **CORS** allows only the kiosk frontends named in `CORS_ORIGIN` (the Vite dev server and the Compose site, by default). `localhost` and `127.0.0.1` count as the same origin. `X-Force-Error` is an allowed header only outside production.
 - **Every endpoint validates its input** against a schema; unknown fields are rejected.
 - **The server owns prices and totals.** The client's prices are only used to detect that a price changed; they are never charged.
 - **Per-order limits**: a maximum quantity per product and a maximum number of distinct products per order, so one request cannot drain stock.

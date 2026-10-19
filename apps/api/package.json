@@ -10,6 +10,7 @@
     "test": "vitest run",
     "typecheck": "tsc",
     "openapi": "node src/scripts/write-openapi.ts",
+    "db:seed": "node src/scripts/seed.ts",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

@@ -10,5 +10,6 @@ coverage/
 
 playwright-report/
 test-results/
+apps/web/e2e/.runtime/
 
 .DS_Store
