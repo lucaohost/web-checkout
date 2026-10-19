@@ -15,5 +15,65 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  payment-mock:
+    build: ./apps/payment-mock
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: "4000"
+      FAILURE_RATE: "0.05"
+      LATENCY_MIN_MS: "150"
+      LATENCY_MAX_MS: "700"
+
+  api:
+    build: ./apps/api
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgres://checkout:checkout@postgres:5432/checkout
+      CORS_ORIGIN: http://localhost:8080
+      PAYMENT_PROVIDER_URL: http://payment-mock:4000
+      STAFF_KEY: dev-staff-key
+      SEED_MENU: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      payment-mock:
+        condition: service_started
+
+  web:
+    build:
+      context: ./apps/web
+      args:
+        VITE_API_URL: http://localhost:3000
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    profiles: ["observability"]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    profiles: ["observability"]
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
 volumes:
   postgres-data:

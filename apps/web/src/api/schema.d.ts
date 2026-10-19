@@ -57,6 +57,132 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/checkouts/{id}/payment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay a Checkout by card, or choose Pay at Pickup; either way an Order is placed on success */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID v4, reused when repeating the same request */
+                    "idempotency-key": string;
+                    "x-kiosk-id"?: string;
+                    /** @description Demo only, ignored in production: forces a payment outcome */
+                    "x-force-error"?: string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        method: "CARD" | "PAY_AT_PICKUP";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            orderId: string;
+                            /** @description Short code the Customer reads out at pickup, such as A-042 */
+                            code: string;
+                            /** @enum {string} */
+                            status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                            /** @enum {string} */
+                            paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                            totalCents: number;
+                            /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                            cardChargeUnconfirmed: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                402: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            error: "PAYMENT_DECLINED" | "PAYMENT_FAILED" | "PAYMENT_UNCONFIRMED";
+                            message: string;
+                            /** @description Why the issuer declined, for PAYMENT_DECLINED */
+                            reason?: string;
+                            options: ("TRY_ANOTHER_CARD" | "PAY_AT_PICKUP" | "CANCEL")[];
+                            cardAttemptsLeft: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/checkouts": {
         parameters: {
             query?: never;
@@ -116,6 +242,30 @@ export interface paths {
                             }[];
                             cardAttemptsLeft: number;
                             cardAllowed: boolean;
+                            /** @description The Order, once the Checkout became one */
+                            order: {
+                                /** Format: uuid */
+                                orderId: string;
+                                /** @description Short code the Customer reads out at pickup, such as A-042 */
+                                code: string;
+                                /** @enum {string} */
+                                status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                                /** @enum {string} */
+                                paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                                totalCents: number;
+                                /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                                cardChargeUnconfirmed: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                                items: {
+                                    /** Format: uuid */
+                                    productId: string;
+                                    name: string;
+                                    emoji: string;
+                                    quantity: number;
+                                    unitPriceCents: number;
+                                }[];
+                            } | null;
                         };
                     };
                 };
@@ -217,6 +367,30 @@ export interface paths {
                             }[];
                             cardAttemptsLeft: number;
                             cardAllowed: boolean;
+                            /** @description The Order, once the Checkout became one */
+                            order: {
+                                /** Format: uuid */
+                                orderId: string;
+                                /** @description Short code the Customer reads out at pickup, such as A-042 */
+                                code: string;
+                                /** @enum {string} */
+                                status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                                /** @enum {string} */
+                                paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                                totalCents: number;
+                                /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                                cardChargeUnconfirmed: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                                items: {
+                                    /** Format: uuid */
+                                    productId: string;
+                                    name: string;
+                                    emoji: string;
+                                    quantity: number;
+                                    unitPriceCents: number;
+                                }[];
+                            } | null;
                         };
                     };
                 };
@@ -272,6 +446,30 @@ export interface paths {
                             }[];
                             cardAttemptsLeft: number;
                             cardAllowed: boolean;
+                            /** @description The Order, once the Checkout became one */
+                            order: {
+                                /** Format: uuid */
+                                orderId: string;
+                                /** @description Short code the Customer reads out at pickup, such as A-042 */
+                                code: string;
+                                /** @enum {string} */
+                                status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                                /** @enum {string} */
+                                paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                                totalCents: number;
+                                /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                                cardChargeUnconfirmed: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                                items: {
+                                    /** Format: uuid */
+                                    productId: string;
+                                    name: string;
+                                    emoji: string;
+                                    quantity: number;
+                                    unitPriceCents: number;
+                                }[];
+                            } | null;
                         };
                     };
                 };
@@ -301,6 +499,393 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recent Orders for the counter, newest first */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                    limit?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            orders: {
+                                /** Format: uuid */
+                                orderId: string;
+                                /** @description Short code the Customer reads out at pickup, such as A-042 */
+                                code: string;
+                                /** @enum {string} */
+                                status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                                /** @enum {string} */
+                                paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                                totalCents: number;
+                                /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                                cardChargeUnconfirmed: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                                items: {
+                                    /** Format: uuid */
+                                    productId: string;
+                                    name: string;
+                                    emoji: string;
+                                    quantity: number;
+                                    unitPriceCents: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Order */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            orderId: string;
+                            /** @description Short code the Customer reads out at pickup, such as A-042 */
+                            code: string;
+                            /** @enum {string} */
+                            status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                            /** @enum {string} */
+                            paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                            totalCents: number;
+                            /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                            cardChargeUnconfirmed: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The Customer paid a Pay at Pickup Order at the counter */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            orderId: string;
+                            /** @description Short code the Customer reads out at pickup, such as A-042 */
+                            code: string;
+                            /** @enum {string} */
+                            status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                            /** @enum {string} */
+                            paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                            totalCents: number;
+                            /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                            cardChargeUnconfirmed: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/pick-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hand a paid Order to the Customer */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            orderId: string;
+                            /** @description Short code the Customer reads out at pickup, such as A-042 */
+                            code: string;
+                            /** @enum {string} */
+                            status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                            /** @enum {string} */
+                            paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                            totalCents: number;
+                            /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                            cardChargeUnconfirmed: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel an Order: its Stock returns, and a card payment is refunded */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            orderId: string;
+                            /** @description Short code the Customer reads out at pickup, such as A-042 */
+                            code: string;
+                            /** @enum {string} */
+                            status: "PAYMENT_PENDING" | "PAID" | "PICKED_UP" | "CANCELLED";
+                            /** @enum {string} */
+                            paymentMethod: "CARD" | "PAY_AT_PICKUP";
+                            totalCents: number;
+                            /** @description A card charge for this purchase could not be confirmed and is being refunded */
+                            cardChargeUnconfirmed: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                productId: string;
+                                name: string;
+                                emoji: string;
+                                quantity: number;
+                                unitPriceCents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: string;
+                            message: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;

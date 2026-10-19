@@ -8,6 +8,7 @@ import type { PaymentDeps } from "./checkout/payment-service.ts";
 import { type Config, loadConfig } from "./config.ts";
 import type { Database } from "./db/client.ts";
 import { registerMenuRoutes } from "./menu/menu-routes.ts";
+import { createMetrics } from "./observability/metrics.ts";
 import { registerStaffRoutes } from "./orders/staff-routes.ts";
 import { createHttpPaymentProvider } from "./payments/http-payment-provider.ts";
 import type { PaymentProvider } from "./payments/payment-provider.ts";
@@ -30,6 +31,7 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
     ajv: { customOptions: { removeAdditional: false, coerceTypes: false } },
   });
 
+  const metrics = createMetrics();
   const payments: PaymentDeps = {
     db,
     clock,
@@ -39,6 +41,9 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
     paymentRetryDelayMs: config.paymentRetryDelayMs,
     refundBackoffMs: config.refundBackoffMs,
     refundMaxTries: config.refundMaxTries,
+    onOrderPlaced: metrics.onOrderPlaced,
+    onPaymentAttempt: metrics.onPaymentAttempt,
+    onRefundFailed: metrics.onRefundFailed,
   };
 
   app.setErrorHandler<FastifyError>((error, request, reply) => {
@@ -93,7 +98,25 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
   });
 
   app.register(async (staff) => {
-    registerStaffRoutes(staff, { payments, staffKey: config.staffKey });
+    registerStaffRoutes(staff, {
+      payments,
+      staffKey: config.staffKey,
+      onOrderStatusChanged: metrics.onOrderStatusChanged,
+    });
+  });
+
+  app.get("/health", { schema: { hide: true } }, async () => ({ status: "ok" }));
+  app.get("/metrics", { schema: { hide: true } }, async (_request, reply) => {
+    reply.header("content-type", metrics.register.contentType);
+    return metrics.register.metrics();
+  });
+
+  app.addHook("onResponse", (request, reply, done) => {
+    const route = request.routeOptions.url ?? request.url;
+    if (route !== "/metrics") {
+      metrics.observeHttp(request.method, route, reply.statusCode, reply.elapsedTime / 1000);
+    }
+    done();
   });
 
   let stopSweep = () => {};

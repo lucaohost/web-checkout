@@ -12,10 +12,12 @@ function soldOutLast(products: Product[]) {
 
 export function MenuScreen({
   cart,
+  banner,
   onAdd,
   ticket,
 }: {
   cart: CartLine[];
+  banner?: string | null;
   onAdd: (product: Product) => void;
   ticket: ReactNode;
 }) {
@@ -56,6 +58,7 @@ export function MenuScreen({
         </nav>
       </header>
       <main className="ordering__menu">
+        {banner && <p className="ordering__banner">{banner}</p>}
         {categories.map((category) => (
           <section key={category.id} id={`category-${category.id}`} aria-label={category.name} className="category">
             <h2 className="category__title">{category.name}</h2>

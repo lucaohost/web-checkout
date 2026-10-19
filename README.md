@@ -9,6 +9,24 @@ Self-service checkout for a snack bar. A customer walks up to a tablet mounted a
 - [Glossary](./GLOSSARY.md): the vocabulary used across code and docs.
 - [Architecture decisions](#architecture-decisions): the ADRs, listed below.
 
+## Run it
+
+Needs Docker and Node 24. From a Unix machine (or Windows with Docker Desktop):
+
+```bash
+docker compose up --build
+```
+
+Then open [http://localhost:8080](http://localhost:8080). The API is on port 3000 (`/docs` is the Swagger UI; staff calls take `X-Staff-Key: dev-staff-key`). The payment mock is on port 4000. Force a card outcome from a browser extension with `X-Force-Error` (`timeout`, `server_error`, `declined`, `insufficient_funds`, `invalid_card`, `slow`).
+
+```bash
+make test          # payment-mock, API (Postgres via Testcontainers) and kiosk unit/UI tests
+make typecheck
+docker compose --profile observability up --build   # Prometheus :9090 and Grafana :3001
+```
+
+Without Compose, start Postgres (`docker compose up -d postgres`), then `node src/server.ts` in `apps/payment-mock` and `apps/api`, and `npm run dev` in `apps/web`.
+
 ## How this was built
 
 Design came before code. A Cursor agent questioned the first draft through every branch of the decision tree, using the skills versioned in [`.cursor/skills`](./.cursor/skills/), and the glossary and ADRs were written as each decision was settled. The [session record](./docs/process/0001-architecture-grilling.md) shows what the agent found, and where the human overrode it. Later steps are recorded in [`docs/process`](./docs/process/).
