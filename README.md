@@ -31,6 +31,14 @@ Without Compose, start Postgres (`docker compose up -d postgres`), then `node sr
 
 Design came before code. A Cursor agent questioned the first draft through every branch of the decision tree, using the skills versioned in [`.cursor/skills`](./.cursor/skills/), and the glossary and ADRs were written as each decision was settled. The [session record](./docs/process/0001-architecture-grilling.md) shows what the agent found, and where the human overrode it. Later steps are recorded in [`docs/process`](./docs/process/).
 
+## Agent skills
+
+[`.cursor/skills`](./.cursor/skills/) holds the three skills that drove that design session. Each name ends in `-lucaohost` because it is a fork of a skill from [Matthew Pocock's skills](https://github.com/mattpocock/skills):
+
+- [`grilling-lucaohost`](./.cursor/skills/grilling-lucaohost/SKILL.md) stress-tests a plan as a decision tree before anyone acts on it.
+- [`domain-modeling-lucaohost`](./.cursor/skills/domain-modeling-lucaohost/SKILL.md) sharpens terminology and writes the glossary and ADRs as decisions settle.
+- [`grill-with-docs-lucaohost`](./.cursor/skills/grill-with-docs-lucaohost/SKILL.md) runs the other two together, in Portuguese, and leaves the docs in the repo.
+
 ## Scope
 
 The time budget goes, in order, to:

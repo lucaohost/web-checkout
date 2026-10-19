@@ -2,7 +2,7 @@
 
 **Date:** 18 October 2026, before any code was written.
 **Inputs:** the assignment brief (PDF) and a first draw.io diagram: a flat list of requirements, plus boxes for the tablet, `checkout-api`, a cache, a database and a payment provider.
-**Tooling:** Cursor agent driven by the [`grill-with-docs`](../../.cursor/skills/grill-with-docs/SKILL.md) skill, which combines [`grilling`](../../.cursor/skills/grilling/SKILL.md), relentless questioning over a decision tree, with [`domain-modeling`](../../.cursor/skills/domain-modeling/SKILL.md), which keeps the glossary and ADRs current as decisions land.
+**Tooling:** Cursor agent driven by the [`grill-with-docs-lucaohost`](../../.cursor/skills/grill-with-docs-lucaohost/SKILL.md) skill, which combines [`grilling-lucaohost`](../../.cursor/skills/grilling-lucaohost/SKILL.md), relentless questioning over a decision tree, with [`domain-modeling-lucaohost`](../../.cursor/skills/domain-modeling-lucaohost/SKILL.md), which keeps the glossary and ADRs current as decisions land.
 
 ## How it ran
 

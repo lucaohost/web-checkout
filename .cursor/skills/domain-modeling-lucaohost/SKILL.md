@@ -1,7 +1,9 @@
 ---
-name: domain-modeling
-description: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.
+name: domain-modeling-lucaohost
+description: Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR. Fork of Matthew Pocock's domain-modeling skill from mattpocock/skills.
 ---
+
+Fork of [Matthew Pocock's `domain-modeling`](https://github.com/mattpocock/skills/blob/main/skills/engineering/domain-modeling/SKILL.md) in [mattpocock/skills](https://github.com/mattpocock/skills).
 
 # Domain Modeling
 
