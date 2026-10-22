@@ -8,6 +8,7 @@ Self-service checkout for a snack bar. A customer walks up to a tablet mounted a
 - [Architecture](./docs/architecture.md): containers, the checkout and payment flow, lifecycles and the data model.
 - [Glossary](./GLOSSARY.md): the vocabulary used across code and docs.
 - [Architecture decisions](#architecture-decisions): the ADRs, listed below.
+- [Walkthrough](#walkthrough): the kiosk, Demo tools, Swagger and metrics, success and failure.
 
 ## Run it
 
@@ -19,7 +20,7 @@ docker compose up --build
 
 Then open [http://localhost:8080](http://localhost:8080). The API is on port 3000 (`/health`, `/docs` for Swagger UI; staff calls take `X-Staff-Key: dev-staff-key`). The payment mock is on port 4000.
 
-Compose sets `ALLOW_FORCE_ERROR=true`, so a card outcome can be forced even though the API image runs with `NODE_ENV=production`. On the card screen, open **Demo tools** and choose declined or timeout. A browser extension can send the same `X-Force-Error` header (`timeout`, `server_error`, `declined`, `insufficient_funds`, `invalid_card`, `slow`); the API forwards it only when that flag is on. Leave the flag unset in a real deployment and the header is ignored.
+Compose sets `ALLOW_FORCE_ERROR=true`, so a card outcome can be forced even though the API image runs with `NODE_ENV=production`. On the card screen, **Demo tools** adds the `X-Force-Error` header to the payment request (`declined` or `timeout`). The API forwards that header only when the flag is on. Leave the flag unset in a real deployment and the header is ignored.
 
 Starting the API migrates the database and, when the menu tables are empty, fills them. `npm run db:seed` in `apps/api` does that same fill without leaving a server running. A database that already has categories is left alone.
 
@@ -35,6 +36,142 @@ GitHub Actions runs lint, typecheck and the same tests on every push and pull re
 Playwright (`npm run e2e` in `apps/web`) needs Docker and a one-time `npx playwright install chromium` in that app. It boots its own Postgres, API, payment mock and kiosk, then pays at the counter, recovers a declined card by paying at pickup, and pays by card. Grafana's Prometheus datasource uid is `prometheus`, and Prometheus scrapes the API on the host's port 3000.
 
 Without Compose, start Postgres (`docker compose up -d postgres`), then `node src/server.ts` in `apps/payment-mock` and `apps/api`, and `npm run dev` in `apps/web`. The dev kiosk is [http://localhost:5173](http://localhost:5173) (the same site on `127.0.0.1` is allowed). If port 4000 is already taken, start the mock with `PORT` set to a free port and point the API at it with `PAYMENT_PROVIDER_URL`.
+
+## Walkthrough
+
+Use this after `docker compose up --build`. The kiosk is [http://localhost:8080](http://localhost:8080). On the dev server the same clicks happen at [http://localhost:5173](http://localhost:5173). The API is [http://localhost:3000](http://localhost:3000).
+
+Set **Demo tools** back to **As the provider decides** between sections, or the next card payment stays forced.
+
+### 1. Menu, cart and a counter payment
+
+1. Open the kiosk. The first screen is Snack Counter, **Start your order**.
+
+![Welcome](docs/screenshots/01-welcome.png)
+
+2. Start the order. Products are grouped into Snacks, Sweets and Drinks. Carrot cake is sold out, greyed out, and last in Sweets. Beef empanada and Brownie show how many are left, because the seed gives them 5 or fewer.
+
+![Menu with availability](docs/screenshots/02-menu-availability.png)
+
+3. Add a Water. The ticket on the side shows the line and the total. **+** and **−** change the quantity. The add button stops at the stock the menu reported.
+
+![Cart with a total](docs/screenshots/03-cart.png)
+
+4. **Confirm order**. The next screen is **How would you like to pay?** with the total, **Card**, **Pay at pickup** and **Cancel**.
+
+![Choose how to pay](docs/screenshots/04-pay.png)
+
+5. **Pay at pickup**. The receipt shows a short code (such as `A-001`), the line, and the amount to pay at the counter. **Done** returns to the start. Leaving the receipt alone does the same after about 15 seconds.
+
+![Receipt to pay at the counter](docs/screenshots/05-receipt-counter.png)
+
+### 2. Card payment, cancel, and a decline from the screen
+
+1. Order a Water again and confirm. Choose **Card**. The reader says **Tap your card**, with **Cancel** and a collapsed **Demo tools**.
+
+2. **Cancel** here goes back to the payment choice. The reservation stays. **Cancel** on the payment choice drops the order and returns the unit to stock, then the start screen.
+
+3. Choose **Card** again and tap the card, with Demo tools still closed. The receipt says **Paid by card**.
+
+4. From the receipt, press **Done** (or wait about 15 seconds) until **Start your order** is back. Add a Water, **Confirm order**, then **Card**. You are on the reader: a dark pad, **Tap your card**, and under it a quiet **Cancel**. Below Cancel, the words **Demo tools** are a disclosure, not a payment button. Click **Demo tools**. A dropdown labeled **Force card outcome** opens. Change it from **As the provider decides** to **Declined**. That choice adds the header `X-Force-Error: declined` to the payment request the kiosk sends.
+
+![Card declined from Demo tools](docs/screenshots/06-demo-tools.png)
+
+Only then press **Tap your card**. The next screen is **Your card was declined**, with **Try another card**, **Pay at pickup** and **Cancel**. If you tap the card before changing the dropdown, no header is sent and the payment is a normal approval. In DevTools, the `POST /checkouts/.../payment` request shows the header, and the `402` body is the decline.
+
+![Card declined from Demo tools](docs/screenshots/10-declined.png)
+
+5. **Pay at pickup**. The receipt is for the counter, the same shape as section 1.
+
+6. One more order. On the reader, set Demo tools to **Timeout**. That adds `X-Force-Error: timeout` to the payment request. Tap the card. The button stays on **Processing…** for several seconds. The next screen is **Couldn't confirm your card payment**: try another card is gone, and the copy says a charge would be refunded. **Pay at pickup** or **Cancel**.
+
+![Card payment not confirmed](docs/screenshots/12-unconfirmed.png)
+
+### 3. Two kiosks and the last units
+
+Beef empanada starts with 4 units. If this database already served orders, use whichever snack the menu still marks as the last few, and add that many in both windows.
+
+1. Open the kiosk in two windows. In both, add Beef empanada until **+** disables.
+2. In the first window, confirm and choose **Pay at pickup**. That window gets a receipt.
+3. In the second window, confirm. The screen is **Your order changed**: the empanada is sold out and removed. **Continue with these changes** confirms what is left (nothing, so it sends you back to add something else). **Edit order** returns to the menu with the sold-out line already dropped.
+
+![Both windows holding the last empanadas](docs/screenshots/13-two-kiosks.png)
+
+![Order changed](docs/screenshots/14-conflict.png)
+
+### 4. Someone walks away
+
+1. Start an order and stop touching the screen.
+2. After about 60 seconds the dialog is **Still there?** with a 15 second countdown.
+3. **I'm still here** keeps the cart. If the countdown ends, the kiosk returns to the start and releases a checkout that was still open.
+
+![Still there](docs/screenshots/15-idle.png)
+
+### 5. Swagger
+
+Open [http://localhost:3000/docs](http://localhost:3000/docs).
+
+1. **Authorize**. The scheme is `staffKey`. The value for this Compose stack is `dev-staff-key`. That sends `X-Staff-Key` on the staff calls. **Authorize**, then **Close**.
+
+![Swagger authorize with the staff key](docs/screenshots/16-swagger-authorize.png)
+
+2. `GET /menu` needs no key. **Try it out**, **Execute**. The `200` body is the same menu as the kiosk, with ids you will paste below.
+
+![Menu from Swagger](docs/screenshots/17-swagger-menu.png)
+
+3. `POST /checkouts`. **Try it out**. Header `idempotency-key`: any UUID v4 (eg: 6a307fbb-795d-4102-8ab4-cc6740ef8ce7). Body, using a product id and `priceCents` from the menu response (Water is `400`):
+
+```json
+{
+  "items": [
+    { "productId": "<water id>", "quantity": 1, "unitPriceCents": 400 }
+  ]
+}
+```
+
+![Checkout created](docs/screenshots/18-swagger-checkout.png)
+
+4. Copy `checkoutId`. `POST /checkouts/{id}/payment`. Header `idempotency-key`: a new UUID (eg da58044d-702b-414a-8613-0933954b8df8). Body:
+
+```json
+{ "method": "PAY_AT_PICKUP" }
+```
+
+`201` is the order: `status` `PAYMENT_PENDING`, `paymentMethod` `PAY_AT_PICKUP`, and a `code`. A `CARD` body with header `x-force-error: declined` returns `402` instead. That is the same header **Demo tools** adds when the dropdown is set to **Declined**.
+
+![Order placed from Swagger](docs/screenshots/19-swagger-payment.png)
+
+5. `GET /checkouts/{id}` returns that checkout with `order` filled in. `DELETE /checkouts/{id}` on a checkout that is already an order returns `409`. To see a release, create a second checkout and `DELETE` it while it is still `ACTIVE`: `200`, status `RELEASED`.
+
+6. `GET /orders`. Leave `status` empty for the recent list, or set `PAYMENT_PENDING`. The order from step 4 is there.
+
+7. Copy `orderId`. `POST /orders/{id}/mark-paid`. **Execute**. `200`, status `PAID`.
+
+![Order picked up](docs/screenshots/21-swagger-paid.png)
+
+Then `POST /orders/{id}/pick-up`. `200`, status `PICKED_UP`.
+
+![Order picked up](docs/screenshots/21-swagger-picked-up.png)
+
+8. Place another Pay at pickup order. `POST /orders/{id}/cancel`. `200`, status `CANCELLED`. Its units go back to stock. Cancelling one that was **Paid by card** also asks the mock to refund that charge. `POST /orders/{id}/pick-up` on an order that is still `PAYMENT_PENDING` returns `409`: it has to be marked paid first.
+
+9. **Authorize** again and **Logout**, so the key is not sent. `GET /orders` returns `401` and `STAFF_KEY_REQUIRED`. Put `dev-staff-key` back before the next staff call.
+
+`GET /health` returns `{ "status": "ok" }` with no key.
+
+### 6. Metrics
+
+1. Open [http://localhost:3000/metrics](http://localhost:3000/metrics) to see the Raw Metrics. After the orders above, the text includes `http_request_duration_seconds`, `payment_provider_request_duration_seconds`, `orders_placed_total`, `payment_attempts_total` and `refunds_failed_total`.
+
+![Raw metrics](docs/screenshots/24-metrics.png)
+
+2. With the observability profile up (`docker compose --profile observability up --build`), Prometheus is [http://localhost:9090](http://localhost:9090). **Alerts** lists `ApiLatencyP95High`, `ApiLatencyP99High`, `ProviderLatencyP99High`, `PaymentFailureRateHigh` and `RefundsFailed`. A query such as `orders_placed_total` shows the counter.
+
+![Prometheus alerts](docs/screenshots/25-prometheus.png)
+
+3. Grafana is [http://localhost:3001](http://localhost:3001). Anonymous viewers can open the **Web checkout** dashboard (API P95, provider P95, orders placed). To administer, sign in as `admin` / `admin`.
+
+![Grafana dashboard](docs/screenshots/26-grafana.png)
 
 ## How this was built
 
