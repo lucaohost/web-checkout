@@ -3,7 +3,6 @@ import type { Product } from "../api/client.ts";
 export type CartLine = {
   productId: string;
   name: string;
-  emoji: string;
   unitPriceCents: number;
   quantity: number;
   maxQuantity: number;
@@ -28,7 +27,6 @@ export function cartReducer(cart: CartLine[], action: CartAction): CartLine[] {
           {
             productId: product.id,
             name: product.name,
-            emoji: product.emoji,
             unitPriceCents: product.priceCents,
             quantity: 1,
             maxQuantity: product.maxQuantity,

@@ -36,7 +36,6 @@ export interface paths {
                                     /** Format: uuid */
                                     id: string;
                                     name: string;
-                                    emoji: string;
                                     priceCents: number;
                                     /** @enum {string} */
                                     availability: "AVAILABLE" | "LAST_UNITS" | "SOLD_OUT";
@@ -115,7 +114,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -236,7 +234,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -261,7 +258,6 @@ export interface paths {
                                     /** Format: uuid */
                                     productId: string;
                                     name: string;
-                                    emoji: string;
                                     quantity: number;
                                     unitPriceCents: number;
                                 }[];
@@ -361,7 +357,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -386,7 +381,6 @@ export interface paths {
                                     /** Format: uuid */
                                     productId: string;
                                     name: string;
-                                    emoji: string;
                                     quantity: number;
                                     unitPriceCents: number;
                                 }[];
@@ -440,7 +434,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -465,7 +458,6 @@ export interface paths {
                                     /** Format: uuid */
                                     productId: string;
                                     name: string;
-                                    emoji: string;
                                     quantity: number;
                                     unitPriceCents: number;
                                 }[];
@@ -549,7 +541,6 @@ export interface paths {
                                     /** Format: uuid */
                                     productId: string;
                                     name: string;
-                                    emoji: string;
                                     quantity: number;
                                     unitPriceCents: number;
                                 }[];
@@ -610,7 +601,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -684,7 +674,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -768,7 +757,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];
@@ -852,7 +840,6 @@ export interface paths {
                                 /** Format: uuid */
                                 productId: string;
                                 name: string;
-                                emoji: string;
                                 quantity: number;
                                 unitPriceCents: number;
                             }[];

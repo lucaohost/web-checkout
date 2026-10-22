@@ -57,7 +57,6 @@
                               "required": [
                                 "id",
                                 "name",
-                                "emoji",
                                 "priceCents",
                                 "availability",
                                 "maxQuantity"
@@ -68,9 +67,6 @@
                                   "format": "uuid"
                                 },
                                 "name": {
-                                  "type": "string"
-                                },
-                                "emoji": {
                                   "type": "string"
                                 },
                                 "priceCents": {
@@ -228,7 +224,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -238,9 +233,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -489,7 +481,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -499,9 +490,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -574,7 +562,6 @@
                             "required": [
                               "productId",
                               "name",
-                              "emoji",
                               "quantity",
                               "unitPriceCents"
                             ],
@@ -584,9 +571,6 @@
                                 "format": "uuid"
                               },
                               "name": {
-                                "type": "string"
-                              },
-                              "emoji": {
                                 "type": "string"
                               },
                               "quantity": {
@@ -787,7 +771,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -797,9 +780,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -872,7 +852,6 @@
                             "required": [
                               "productId",
                               "name",
-                              "emoji",
                               "quantity",
                               "unitPriceCents"
                             ],
@@ -882,9 +861,6 @@
                                 "format": "uuid"
                               },
                               "name": {
-                                "type": "string"
-                              },
-                              "emoji": {
                                 "type": "string"
                               },
                               "quantity": {
@@ -990,7 +966,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -1000,9 +975,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -1075,7 +1047,6 @@
                             "required": [
                               "productId",
                               "name",
-                              "emoji",
                               "quantity",
                               "unitPriceCents"
                             ],
@@ -1085,9 +1056,6 @@
                                 "format": "uuid"
                               },
                               "name": {
-                                "type": "string"
-                              },
-                              "emoji": {
                                 "type": "string"
                               },
                               "quantity": {
@@ -1259,7 +1227,6 @@
                               "required": [
                                 "productId",
                                 "name",
-                                "emoji",
                                 "quantity",
                                 "unitPriceCents"
                               ],
@@ -1269,9 +1236,6 @@
                                   "format": "uuid"
                                 },
                                 "name": {
-                                  "type": "string"
-                                },
-                                "emoji": {
                                   "type": "string"
                                 },
                                 "quantity": {
@@ -1376,7 +1340,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -1386,9 +1349,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -1512,7 +1472,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -1522,9 +1481,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -1670,7 +1626,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -1680,9 +1635,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {
@@ -1828,7 +1780,6 @@
                         "required": [
                           "productId",
                           "name",
-                          "emoji",
                           "quantity",
                           "unitPriceCents"
                         ],
@@ -1838,9 +1789,6 @@
                             "format": "uuid"
                           },
                           "name": {
-                            "type": "string"
-                          },
-                          "emoji": {
                             "type": "string"
                           },
                           "quantity": {

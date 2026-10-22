@@ -36,7 +36,6 @@ export async function createOrderFromCheckout(
       productId: checkoutItems.productId,
       position: checkoutItems.position,
       name: products.name,
-      emoji: products.emoji,
       quantity: checkoutItems.quantity,
       unitPriceCents: checkoutItems.unitPriceCents,
     })
@@ -52,7 +51,6 @@ async function viewOf(db: Database, order: typeof orders.$inferSelect) {
     .select({
       productId: orderItems.productId,
       name: orderItems.name,
-      emoji: orderItems.emoji,
       quantity: orderItems.quantity,
       unitPriceCents: orderItems.unitPriceCents,
     })

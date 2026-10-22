@@ -189,7 +189,6 @@ export async function getCheckoutView(db: Database, checkoutId: string) {
     .select({
       productId: checkoutItems.productId,
       name: products.name,
-      emoji: products.emoji,
       quantity: checkoutItems.quantity,
       unitPriceCents: checkoutItems.unitPriceCents,
     })

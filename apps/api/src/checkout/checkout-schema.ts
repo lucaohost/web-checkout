@@ -14,11 +14,10 @@ export const checkoutViewSchema = {
       type: "array",
       items: {
         type: "object",
-        required: ["productId", "name", "emoji", "quantity", "unitPriceCents"],
+        required: ["productId", "name", "quantity", "unitPriceCents"],
         properties: {
           productId: { type: "string", format: "uuid" },
           name: { type: "string" },
-          emoji: { type: "string" },
           quantity: { type: "integer" },
           unitPriceCents: { type: "integer" },
         },

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { type CartLine, cartTotalCents } from "../cart/cart.ts";
+import { productIcon } from "../menu/icons.ts";
 import { formatCents } from "../money.ts";
 
 export function OrderTicket({
@@ -23,7 +24,7 @@ export function OrderTicket({
           {cart.map((line) => (
             <li key={line.productId} className="ticket__line">
               <span className="ticket__line-name">
-                <span aria-hidden="true">{line.emoji}</span> {line.name}
+                <span aria-hidden="true">{productIcon(line.name)}</span> {line.name}
               </span>
               <span className="ticket__line-price">{formatCents(line.unitPriceCents * line.quantity)}</span>
               <span className="ticket__stepper">

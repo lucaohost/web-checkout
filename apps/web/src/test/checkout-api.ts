@@ -11,7 +11,7 @@ export function checkoutView(overrides: Partial<CheckoutView> = {}): CheckoutVie
     status: "ACTIVE",
     totalCents: 1700,
     expiresAt: "2026-10-18T12:03:00.000Z",
-    items: [{ productId: PRODUCT.coxinha, name: "Coxinha", emoji: "🍗", quantity: 2, unitPriceCents: 850 }],
+    items: [{ productId: PRODUCT.coxinha, name: "Coxinha", quantity: 2, unitPriceCents: 850 }],
     cardAttemptsLeft: 3,
     cardAllowed: true,
     order: null,
@@ -28,7 +28,7 @@ export function orderView(overrides: Partial<OrderView> = {}): OrderView {
     totalCents: 1700,
     cardChargeUnconfirmed: false,
     createdAt: "2026-10-18T12:01:00.000Z",
-    items: [{ productId: PRODUCT.coxinha, name: "Coxinha", emoji: "🍗", quantity: 2, unitPriceCents: 850 }],
+    items: [{ productId: PRODUCT.coxinha, name: "Coxinha", quantity: 2, unitPriceCents: 850 }],
     ...overrides,
   };
 }

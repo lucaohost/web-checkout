@@ -18,11 +18,10 @@ export const menuSchema = {
                 type: "array",
                 items: {
                   type: "object",
-                  required: ["id", "name", "emoji", "priceCents", "availability", "maxQuantity"],
+                  required: ["id", "name", "priceCents", "availability", "maxQuantity"],
                   properties: {
                     id: { type: "string", format: "uuid" },
                     name: { type: "string" },
-                    emoji: { type: "string" },
                     priceCents: { type: "integer" },
                     availability: { type: "string", enum: ["AVAILABLE", "LAST_UNITS", "SOLD_OUT"] },
                     maxQuantity: {

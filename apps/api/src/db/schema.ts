@@ -29,7 +29,6 @@ export const products = pgTable(
       .notNull()
       .references(() => categories.id),
     name: text().notNull(),
-    emoji: text().notNull().default(""),
     priceCents: integer().notNull(),
     stock: integer().notNull(),
   },
@@ -116,7 +115,6 @@ export const orderItems = pgTable(
       .references(() => products.id),
     position: integer().notNull(),
     name: text().notNull(),
-    emoji: text().notNull(),
     quantity: integer().notNull(),
     unitPriceCents: integer().notNull(),
   },

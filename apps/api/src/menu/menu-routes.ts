@@ -14,7 +14,6 @@ async function loadMenu(db: Database) {
       id: products.id,
       categoryId: products.categoryId,
       name: products.name,
-      emoji: products.emoji,
       priceCents: products.priceCents,
     })
     .from(products)
@@ -25,7 +24,7 @@ async function loadMenu(db: Database) {
     name: category.name,
     products: productRows
       .filter((product) => product.categoryId === category.id)
-      .map(({ id, name, emoji, priceCents }) => ({ id, name, emoji, priceCents })),
+      .map(({ id, name, priceCents }) => ({ id, name, priceCents })),
   }));
 }
 

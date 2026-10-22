@@ -1,4 +1,5 @@
 import type { Product } from "../api/client.ts";
+import { productIcon } from "../menu/icons.ts";
 import { formatCents } from "../money.ts";
 
 export function ProductCard({
@@ -16,7 +17,7 @@ export function ProductCard({
   return (
     <article aria-label={product.name} className={`product ${soldOut ? "product--sold-out" : ""}`}>
       <span className="product__emoji" aria-hidden="true">
-        {product.emoji}
+        {productIcon(product.name)}
       </span>
       <h3 className="product__name">{product.name}</h3>
       <p className="product__price">{formatCents(product.priceCents)}</p>

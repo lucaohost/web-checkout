@@ -13,22 +13,22 @@ export const menu: Menu = {
       id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       name: "Snacks",
       products: [
-        { id: PRODUCT.coxinha, name: "Coxinha", emoji: "🍗", priceCents: 850, availability: "AVAILABLE", maxQuantity: 10 },
+        { id: PRODUCT.coxinha, name: "Coxinha", priceCents: 850, availability: "AVAILABLE", maxQuantity: 10 },
       ],
     },
     {
       id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
       name: "Sweets",
       products: [
-        { id: PRODUCT.carrotCake, name: "Carrot cake", emoji: "🥕", priceCents: 700, availability: "SOLD_OUT", maxQuantity: 0 },
-        { id: PRODUCT.brownie, name: "Brownie", emoji: "🍫", priceCents: 900, availability: "LAST_UNITS", maxQuantity: 2 },
+        { id: PRODUCT.carrotCake, name: "Carrot cake", priceCents: 700, availability: "SOLD_OUT", maxQuantity: 0 },
+        { id: PRODUCT.brownie, name: "Brownie", priceCents: 900, availability: "LAST_UNITS", maxQuantity: 2 },
       ],
     },
     {
       id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       name: "Drinks",
       products: [
-        { id: PRODUCT.cola, name: "Cola", emoji: "🥤", priceCents: 600, availability: "AVAILABLE", maxQuantity: 10 },
+        { id: PRODUCT.cola, name: "Cola", priceCents: 600, availability: "AVAILABLE", maxQuantity: 10 },
       ],
     },
   ],
