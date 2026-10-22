@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/api/package-lock.json
+            apps/web/package-lock.json
+            apps/payment-mock/package-lock.json
+      - run: npm ci
+      - run: npm ci
+        working-directory: apps/payment-mock
+      - run: npm ci
+        working-directory: apps/api
+      - run: npm ci
+        working-directory: apps/web
+      - run: npm run lint
+      - run: npm run typecheck
+        working-directory: apps/api
+      - run: npm run typecheck
+        working-directory: apps/payment-mock
+      - run: npm run typecheck
+        working-directory: apps/web
+      - run: npm test
+        working-directory: apps/payment-mock
+      - run: npm test
+        working-directory: apps/api
+      - run: npm test
+        working-directory: apps/web
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run e2e
+        working-directory: apps/web

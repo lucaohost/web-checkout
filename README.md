@@ -17,17 +17,22 @@ Needs Docker and Node 24. From a Unix machine (or Windows with Docker Desktop):
 docker compose up --build
 ```
 
-Then open [http://localhost:8080](http://localhost:8080). The API is on port 3000 (`/health`, `/docs` for Swagger UI; staff calls take `X-Staff-Key: dev-staff-key`). The payment mock is on port 4000. Force a card outcome from a browser extension with `X-Force-Error` (`timeout`, `server_error`, `declined`, `insufficient_funds`, `invalid_card`, `slow`).
+Then open [http://localhost:8080](http://localhost:8080). The API is on port 3000 (`/health`, `/docs` for Swagger UI; staff calls take `X-Staff-Key: dev-staff-key`). The payment mock is on port 4000.
+
+Compose sets `ALLOW_FORCE_ERROR=true`, so a card outcome can be forced even though the API image runs with `NODE_ENV=production`. On the card screen, open **Demo tools** and choose declined or timeout. A browser extension can send the same `X-Force-Error` header (`timeout`, `server_error`, `declined`, `insufficient_funds`, `invalid_card`, `slow`); the API forwards it only when that flag is on. Leave the flag unset in a real deployment and the header is ignored.
 
 Starting the API migrates the database and, when the menu tables are empty, fills them. `npm run db:seed` in `apps/api` does that same fill without leaving a server running. A database that already has categories is left alone.
 
 ```bash
+make lint          # oxlint, from the repo root (`npm ci` once, so the linter is installed)
 make test          # payment-mock, API (Postgres via Testcontainers), kiosk unit/UI tests, and Playwright
 make typecheck
 docker compose --profile observability up --build   # Prometheus :9090 and Grafana :3001
 ```
 
-Playwright (`npm run e2e` in `apps/web`) needs Docker and a one-time `npx playwright install chromium` in that app. It boots its own Postgres, API, payment mock and kiosk, then pays at the counter and by card. Grafana's Prometheus datasource uid is `prometheus`, and Prometheus scrapes the API on the host's port 3000.
+GitHub Actions runs lint, typecheck and the same tests on every push and pull request. Prometheus loads `observability/alerts.yml`: API P95 above 300 ms, API P99 above 1 s (the payment route is excluded, because it includes provider time), provider P99 above the 3 s timeout, card attempts failing more than a quarter of the time, and any refund that exhausted its retries.
+
+Playwright (`npm run e2e` in `apps/web`) needs Docker and a one-time `npx playwright install chromium` in that app. It boots its own Postgres, API, payment mock and kiosk, then pays at the counter, recovers a declined card by paying at pickup, and pays by card. Grafana's Prometheus datasource uid is `prometheus`, and Prometheus scrapes the API on the host's port 3000.
 
 Without Compose, start Postgres (`docker compose up -d postgres`), then `node src/server.ts` in `apps/payment-mock` and `apps/api`, and `npm run dev` in `apps/web`. The dev kiosk is [http://localhost:5173](http://localhost:5173) (the same site on `127.0.0.1` is allowed). If port 4000 is already taken, start the mock with `PORT` set to a free port and point the API at it with `PAYMENT_PROVIDER_URL`.
 

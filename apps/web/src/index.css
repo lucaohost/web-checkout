@@ -542,6 +542,10 @@ button:disabled {
   width: min(420px, 100%);
 }
 
+.pay .ordering__banner {
+  width: min(420px, 100%);
+}
+
 .terminal {
   width: 180px;
   height: 180px;
@@ -551,6 +555,26 @@ button:disabled {
   display: grid;
   place-items: center;
   box-shadow: 0 8px 0 #0b1722;
+}
+
+.demo {
+  color: var(--color-muted);
+  font-size: 16px;
+}
+
+.demo summary {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.demo select {
+  display: block;
+  min-height: 48px;
+  margin: 8px auto 0;
+  font: inherit;
+  color: var(--color-ink);
 }
 
 .terminal__pad {

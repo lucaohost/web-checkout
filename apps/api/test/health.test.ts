@@ -24,6 +24,16 @@ it("answers /health so Compose and a teammate can see the API is up", async () =
   expect(response.json()).toEqual({ status: "ok" });
 });
 
+it("exposes a histogram of payment provider call duration", async () => {
+  const app = buildApp({ db, config: { sweepIntervalMs: 0 } });
+  apps.push(app);
+
+  const response = await app.inject({ method: "GET", url: "/metrics" });
+
+  expect(response.statusCode).toBe(200);
+  expect(response.body).toContain("payment_provider_request_duration_seconds");
+});
+
 it("exposes Prometheus metrics for request duration and Order outcomes", async () => {
   const app = buildApp({ db, config: { sweepIntervalMs: 0 } });
   apps.push(app);

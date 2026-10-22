@@ -1,0 +1,66 @@
+# Thresholds follow the SLOs in the README and docs/requirements.md.
+# API processing, excluding the payment provider: P95 under 300 ms. The payment route
+# includes provider time, so it is left out of the API latency alerts.
+# A provider call times out at 3 s. The mock fails about 5% of charges at random, so the
+# failure alert sits well above that, at a quarter of attempts.
+
+groups:
+  - name: checkout
+    rules:
+      - alert: ApiLatencyP95High
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (
+              rate(http_request_duration_seconds_bucket{route!="/checkouts/:id/payment",route!="/metrics"}[5m])
+            )
+          ) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: API P95 is above the 300ms processing target
+
+      - alert: ApiLatencyP99High
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le) (
+              rate(http_request_duration_seconds_bucket{route!="/checkouts/:id/payment",route!="/metrics"}[5m])
+            )
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: API P99 is above 1s, past the 300ms P95 target
+
+      - alert: ProviderLatencyP99High
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le) (rate(payment_provider_request_duration_seconds_bucket[5m]))
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Payment provider P99 is above the 3s timeout
+
+      - alert: PaymentFailureRateHigh
+        expr: |
+          (
+            sum(rate(payment_attempts_total{outcome!="APPROVED"}[10m]))
+            /
+            sum(rate(payment_attempts_total[10m]))
+          ) > 0.25
+          and sum(increase(payment_attempts_total[10m])) > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than a quarter of card attempts are failing
+
+      - alert: RefundsFailed
+        expr: increase(refunds_failed_total[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: A refund exhausted its retries

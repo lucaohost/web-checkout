@@ -33,15 +33,33 @@ export function orderView(overrides: Partial<OrderView> = {}): OrderView {
   };
 }
 
-export type RecordedRequest = { method: string; path: string; key: string | null; body: unknown };
+export type RecordedRequest = {
+  method: string;
+  path: string;
+  key: string | null;
+  forceError: string | null;
+  body: unknown;
+};
+
+export type ScriptedResponse = { status: number; body: JsonBodyType } | "network-error";
+
+function reply(next: ScriptedResponse) {
+  return next === "network-error" ? HttpResponse.error() : HttpResponse.json(next.body, { status: next.status });
+}
+
+function take(queue: ScriptedResponse[]) {
+  return queue.length > 1 ? queue.shift()! : queue[0]!;
+}
 
 /** Records every checkout call the kiosk makes, answering each in turn from the given responses. */
 export function serveCheckout({
   checkouts = [{ status: 201, body: checkoutView() }],
   payments = [{ status: 201, body: orderView() }],
+  reads = [{ status: 200, body: checkoutView() }],
 }: {
-  checkouts?: { status: number; body: JsonBodyType }[] | "network-error-then-created";
-  payments?: { status: number; body: JsonBodyType }[];
+  checkouts?: ScriptedResponse[] | "network-error-then-created";
+  payments?: ScriptedResponse[];
+  reads?: ScriptedResponse[];
 } = {}) {
   const requests: RecordedRequest[] = [];
   const record = async (request: Request) => {
@@ -50,6 +68,7 @@ export function serveCheckout({
       method: request.method,
       path: new URL(request.url).pathname,
       key: request.headers.get("Idempotency-Key"),
+      forceError: request.headers.get("X-Force-Error"),
       body: text ? JSON.parse(text) : undefined,
     });
   };
@@ -57,19 +76,22 @@ export function serveCheckout({
   const checkoutQueue = checkouts === "network-error-then-created" ? undefined : [...checkouts];
   let checkoutCalls = 0;
   const paymentQueue = [...payments];
+  const readQueue = [...reads];
 
   server.use(
     http.post(`${API_URL}/checkouts`, async ({ request }) => {
       await record(request);
       checkoutCalls++;
       if (!checkoutQueue) return checkoutCalls === 1 ? HttpResponse.error() : HttpResponse.json(checkoutView(), { status: 201 });
-      const next = checkoutQueue.length > 1 ? checkoutQueue.shift()! : checkoutQueue[0]!;
-      return HttpResponse.json(next.body, { status: next.status });
+      return reply(take(checkoutQueue));
     }),
     http.post(`${API_URL}/checkouts/:id/payment`, async ({ request }) => {
       await record(request);
-      const next = paymentQueue.length > 1 ? paymentQueue.shift()! : paymentQueue[0]!;
-      return HttpResponse.json(next.body, { status: next.status });
+      return reply(take(paymentQueue));
+    }),
+    http.get(`${API_URL}/checkouts/:id`, async ({ request }) => {
+      await record(request);
+      return reply(take(readQueue));
     }),
     http.delete(`${API_URL}/checkouts/:id`, async ({ request }) => {
       await record(request);

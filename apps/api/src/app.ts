@@ -36,7 +36,12 @@ export function buildApp({ db, config: overrides = {}, clock = () => new Date(),
     db,
     clock,
     provider:
-      paymentProvider ?? createHttpPaymentProvider({ baseUrl: config.paymentProviderUrl, timeoutMs: config.paymentTimeoutMs }),
+      paymentProvider ??
+      createHttpPaymentProvider({
+        baseUrl: config.paymentProviderUrl,
+        timeoutMs: config.paymentTimeoutMs,
+        onCall: metrics.observeProvider,
+      }),
     log: app.log,
     paymentRetryDelayMs: config.paymentRetryDelayMs,
     refundBackoffMs: config.refundBackoffMs,

@@ -34,7 +34,7 @@ Choosing Pay at Pickup, either from the start or after a failed attempt, creates
 
 - Each provider call times out after 3 s.
 - The worst case (timeout, retry, timeout, status query) stays around 7 to 8 s, with the kiosk showing progress the whole time.
-- The kiosk's own request timeout is 10 s. After it, the kiosk resends with the same idempotency key, which either replays the result or reports that the request is still in progress.
+- The kiosk's own request timeout is 10 s. After it, the kiosk resends with the same idempotency key, which either replays the result or reports that the request is still in progress. If every resend loses its response too, the kiosk calls `GET /checkouts/:id`. An Order on that Checkout is shown as the Receipt; anything else is explained on the payment screen, not only back on the Menu.
 
 ## Refunds
 

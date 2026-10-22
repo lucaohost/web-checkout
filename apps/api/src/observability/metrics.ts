@@ -12,6 +12,14 @@ export function createMetrics() {
     registers: [register],
   });
 
+  const providerDuration = new Histogram({
+    name: "payment_provider_request_duration_seconds",
+    help: "Payment provider call duration, including the time spent waiting on the network",
+    labelNames: ["operation", "result"],
+    buckets: [0.05, 0.1, 0.3, 0.5, 1, 2, 3, 5, 8],
+    registers: [register],
+  });
+
   const orders = new Counter({
     name: "orders_placed_total",
     help: "Orders placed at a Kiosk, by payment method",
@@ -43,6 +51,9 @@ export function createMetrics() {
     register,
     observeHttp: (method: string, route: string, status: number, seconds: number) => {
       httpDuration.observe({ method, route, status: String(status) }, seconds);
+    },
+    observeProvider: (operation: string, result: string, seconds: number) => {
+      providerDuration.observe({ operation, result }, seconds);
     },
     onOrderPlaced: (paymentMethod: "CARD" | "PAY_AT_PICKUP") => orders.inc({ payment_method: paymentMethod }),
     onPaymentAttempt: (outcome: string) => paymentOutcomes.inc({ outcome }),

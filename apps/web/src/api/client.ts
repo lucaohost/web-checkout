@@ -58,10 +58,20 @@ function isWorthRepeating(error: unknown) {
 }
 
 /** ADR-0009: one key per Customer intent; repeats of that intent reuse it. */
-export async function sendIntent<T>(path: string, body: unknown, key: string, retries = 2): Promise<T> {
+export async function sendIntent<T>(
+  path: string,
+  body: unknown,
+  key: string,
+  options: { retries?: number; headers?: Record<string, string> } = {},
+): Promise<T> {
+  const retries = options.retries ?? 2;
   for (let attempt = 0; ; attempt++) {
     try {
-      return await request<T>(path, { method: "POST", body: JSON.stringify(body), headers: { "Idempotency-Key": key } });
+      return await request<T>(path, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: { ...options.headers, "Idempotency-Key": key },
+      });
     } catch (error) {
       if (attempt >= retries || !isWorthRepeating(error)) throw error;
       await sleep(700 * (attempt + 1));
@@ -77,8 +87,10 @@ export function createCheckout(items: { productId: string; quantity: number; uni
   return sendIntent<CheckoutView>("/checkouts", { items }, key);
 }
 
-export function payCheckout(checkoutId: string, method: "CARD" | "PAY_AT_PICKUP", key: string) {
-  return sendIntent<OrderView>(`/checkouts/${checkoutId}/payment`, { method }, key);
+export function payCheckout(checkoutId: string, method: "CARD" | "PAY_AT_PICKUP", key: string, forceError?: string) {
+  return sendIntent<OrderView>(`/checkouts/${checkoutId}/payment`, { method }, key, {
+    headers: forceError ? { "X-Force-Error": forceError } : undefined,
+  });
 }
 
 export function getCheckout(checkoutId: string) {

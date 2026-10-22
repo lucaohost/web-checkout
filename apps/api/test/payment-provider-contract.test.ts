@@ -60,7 +60,21 @@ describe("the HTTP payment provider against the real payment-mock", () => {
     expect(await provider.getStatus(key, {})).toEqual({ kind: "not_found" });
   });
 
-  it("reports a network error when the provider is unreachable", async () => {
+  it("records how long each provider call took", async () => {
+  const calls: { operation: string; result: string; seconds: number }[] = [];
+  const timed = createHttpPaymentProvider({
+    baseUrl: mock.baseUrl,
+    timeoutMs: 300,
+    onCall: (operation, result, seconds) => calls.push({ operation, result, seconds }),
+  });
+
+  await timed.charge({ key: randomUUID(), amountCents: 500 }, {});
+
+  expect(calls).toEqual([expect.objectContaining({ operation: "charge", result: "approved" })]);
+  expect(calls[0]!.seconds).toBeGreaterThanOrEqual(0);
+});
+
+it("reports a network error when the provider is unreachable", async () => {
     const unreachable = createHttpPaymentProvider({ baseUrl: "http://127.0.0.1:1", timeoutMs: 300 });
 
     expect(await unreachable.charge({ key: randomUUID(), amountCents: 100 }, {})).toEqual({

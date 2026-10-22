@@ -50,12 +50,21 @@ export function App() {
         <PayScreen
           totalCents={kiosk.checkout.totalCents}
           busy={kiosk.busy}
+          notice={kiosk.banner}
           onCard={kiosk.chooseCard}
           onPayAtPickup={kiosk.payAtPickup}
           onCancel={kiosk.abandon}
         />
       )}
-      {kiosk.screen === "card" && <CardTerminal busy={kiosk.busy} onTap={kiosk.tapCard} />}
+      {kiosk.screen === "card" && (
+        <CardTerminal
+          busy={kiosk.busy}
+          forceError={kiosk.forceError}
+          onForceError={kiosk.setForceError}
+          onTap={kiosk.tapCard}
+          onCancel={kiosk.leaveCard}
+        />
+      )}
       {kiosk.screen === "problem" && kiosk.problem && (
         <PaymentProblemScreen
           problem={kiosk.problem}

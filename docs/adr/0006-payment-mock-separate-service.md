@@ -16,7 +16,7 @@ The mock adds simulated latency and fails about 5% of requests at random. A requ
 - for charges: `timeout`, `server_error`, `declined`, `insufficient_funds`, `invalid_card` or `slow`;
 - for refunds: `timeout` or `server_error`.
 
-The API forwards the header to the mock only outside production; for the demo, a browser extension sets it on the kiosk's requests. Tests run the mock with a fixed seed so the random failures are reproducible.
+The API forwards the header only when `ALLOW_FORCE_ERROR` is true. That flag follows `NODE_ENV` when it is unset (on in development, off in production) and Compose sets it explicitly, because the API image runs with `NODE_ENV=production`. The card screen also has a collapsed demo control that sends the header for a decline or a timeout. Tests run the mock with a fixed seed so the random failures are reproducible.
 
 ## Considered options
 

@@ -22,6 +22,13 @@ export function resolveCorsOrigins(raw: string): string[] {
   return [...origins];
 }
 
+/** Unset keeps the demo header off in production and on everywhere else. */
+function flag(value: string | undefined, whenUnset: boolean) {
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return whenUnset;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
   const production = env.NODE_ENV === "production";
   const staffKey = env.STAFF_KEY ?? (production ? undefined : "dev-staff-key");
@@ -40,7 +47,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env) {
     refundMaxTries: Number(env.REFUND_MAX_TRIES ?? 5),
     rateLimitPerMinute: Number(env.RATE_LIMIT_PER_MINUTE ?? 120),
     staffKey,
-    forwardForceError: !production,
+    forwardForceError: flag(env.ALLOW_FORCE_ERROR, !production),
     seedMenu: env.SEED_MENU !== "false",
   };
 }

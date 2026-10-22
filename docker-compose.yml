@@ -36,6 +36,8 @@ services:
       PAYMENT_PROVIDER_URL: http://payment-mock:4000
       STAFF_KEY: dev-staff-key
       SEED_MENU: "true"
+      # The API image sets NODE_ENV=production. This flag, not that, lets a demo force a card outcome.
+      ALLOW_FORCE_ERROR: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -59,6 +61,7 @@ services:
       - "9090:9090"
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alerts.yml:/etc/prometheus/alerts.yml:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

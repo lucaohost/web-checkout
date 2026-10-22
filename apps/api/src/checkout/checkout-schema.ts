@@ -49,7 +49,10 @@ export const payCheckoutSchema = {
     ...idempotencyHeadersSchema,
     properties: {
       ...idempotencyHeadersSchema.properties,
-      "x-force-error": { type: "string", description: "Demo only, ignored in production: forces a payment outcome" },
+      "x-force-error": {
+        type: "string",
+        description: "Demo only. Forwarded when ALLOW_FORCE_ERROR is true; Compose turns it on, and a production process leaves it off.",
+      },
     },
   },
   params: uuidParamsSchema,

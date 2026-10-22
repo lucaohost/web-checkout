@@ -1,4 +1,4 @@
-import { act, screen, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import type userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CHECKOUT_ID, checkoutView, orderView, serveCheckout } from "./test/checkout-api.ts";
@@ -173,6 +173,174 @@ describe("an unreliable connection", () => {
     expect(await screen.findByText(/we put your items back/i)).toBeInTheDocument();
     const ticket = screen.getByRole("complementary", { name: "Your order" });
     expect(within(ticket).getByLabelText("Total")).toHaveTextContent("$17.00");
+  });
+});
+
+describe("a lost payment response", () => {
+  it("shows the receipt when every payment attempt loses its response but the Checkout already became an Order", async () => {
+    serveMenu();
+    const requests = serveCheckout({
+      payments: ["network-error", "network-error", "network-error"],
+      reads: [{ status: 200, body: checkoutView({ status: "CONSUMED", order: orderView() }) }],
+    });
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    await payByCard(user);
+
+    expect(await screen.findByText("A-042", {}, { timeout: 8_000 })).toBeInTheDocument();
+    expect(requests.filter((request) => request.method === "GET")).toHaveLength(1);
+  }, 15_000);
+
+  it("shows the failure on the payment screen when the charge did not become an Order", async () => {
+    serveMenu();
+    serveCheckout({
+      payments: ["network-error", "network-error", "network-error"],
+      reads: [{ status: 200, body: checkoutView({ status: "ACTIVE", order: null }) }],
+    });
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    await payByCard(user);
+
+    expect(await screen.findByRole("heading", { name: /how would you like to pay/i }, { timeout: 8_000 })).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(/did not go through/i);
+  }, 15_000);
+
+  it("recovers the receipt when paying again is rejected because the Checkout is already an Order", async () => {
+    serveMenu();
+    serveCheckout({
+      payments: [{ status: 409, body: { error: "CHECKOUT_COMPLETED", message: "This Checkout already became an Order." } }],
+      reads: [{ status: 200, body: checkoutView({ status: "CONSUMED", order: orderView() }) }],
+    });
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    await payByCard(user);
+
+    expect(await screen.findByText("A-042")).toBeInTheDocument();
+  });
+});
+
+describe("a lost confirmation", () => {
+  it("confirms again with the same key when the Cart did not change", async () => {
+    serveMenu();
+    const requests = serveCheckout({
+      checkouts: ["network-error", "network-error", "network-error", { status: 201, body: checkoutView() }],
+    });
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    expect(await screen.findByText(/check the connection/i, {}, { timeout: 8_000 })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Confirm order" }));
+
+    expect(await screen.findByRole("heading", { name: /how would you like to pay/i })).toBeInTheDocument();
+    const posts = requests.filter((request) => request.method === "POST" && request.path === "/checkouts");
+    expect(posts).toHaveLength(4);
+    expect(new Set(posts.map((request) => request.key)).size).toBe(1);
+    expect(requests.some((request) => request.method === "DELETE")).toBe(false);
+  }, 15_000);
+
+  it("cancels the Checkout a lost confirmation reserved once the Cart changes, then confirms the new Cart with a new key", async () => {
+    serveMenu();
+    const requests = serveCheckout({
+      checkouts: [
+        "network-error",
+        "network-error",
+        "network-error",
+        { status: 201, body: checkoutView() },
+        { status: 201, body: checkoutView() },
+      ],
+    });
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    expect(await screen.findByText(/check the connection/i, {}, { timeout: 8_000 })).toBeInTheDocument();
+    const lostKey = requests[0]!.key;
+
+    await user.click(screen.getByRole("button", { name: "Add Cola" }));
+    await waitFor(() => expect(requests.some((request) => request.method === "DELETE")).toBe(true));
+
+    expect(requests[3]).toMatchObject({
+      method: "POST",
+      path: "/checkouts",
+      key: lostKey,
+      body: { items: [{ productId: PRODUCT.coxinha, quantity: 2, unitPriceCents: 850 }] },
+    });
+
+    await user.click(screen.getByRole("button", { name: "Confirm order" }));
+    expect(await screen.findByRole("heading", { name: /how would you like to pay/i })).toBeInTheDocument();
+    const confirmed = requests.filter((request) => request.method === "POST" && request.path === "/checkouts").at(-1)!;
+    expect(confirmed.key).not.toBe(lostKey);
+    expect(confirmed.body).toEqual({
+      items: [
+        { productId: PRODUCT.coxinha, quantity: 2, unitPriceCents: 850 },
+        { productId: PRODUCT.cola, quantity: 1, unitPriceCents: 600 },
+      ],
+    });
+  }, 15_000);
+});
+
+describe("the card reader", () => {
+  it("lets the Customer leave the reader and choose another way to pay", async () => {
+    serveMenu();
+    const requests = serveCheckout();
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    await user.click(await screen.findByRole("button", { name: /^card/i }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.getByRole("heading", { name: /how would you like to pay/i })).toBeInTheDocument();
+    expect(requests.some((request) => request.method === "DELETE")).toBe(false);
+  });
+
+  it("sends a forced card outcome chosen from the demo control", async () => {
+    serveMenu();
+    const requests = serveCheckout({
+      payments: [
+        {
+          status: 402,
+          body: {
+            error: "PAYMENT_DECLINED",
+            message: "The card was declined.",
+            options: ["TRY_ANOTHER_CARD", "PAY_AT_PICKUP", "CANCEL"],
+            cardAttemptsLeft: 2,
+          },
+        },
+      ],
+    });
+    const { user } = renderKiosk();
+
+    await orderTwoCoxinhas(user);
+    await user.click(await screen.findByRole("button", { name: /^card/i }));
+    await user.click(screen.getByText("Demo tools"));
+    await user.selectOptions(screen.getByLabelText("Force card outcome"), "declined");
+    await user.click(screen.getByRole("button", { name: /tap your card/i }));
+
+    expect(await screen.findByRole("heading", { name: /your card was declined/i })).toBeInTheDocument();
+    expect(requests.find((request) => request.path.endsWith("/payment"))?.forceError).toBe("declined");
+  });
+});
+
+describe("a finished Order", () => {
+  it("returns to the start about 15 seconds after the receipt", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    serveMenu();
+    const requests = serveCheckout();
+    const { user } = renderKiosk({ advanceTimers: vi.advanceTimersByTime });
+
+    await orderTwoCoxinhas(user);
+    await payByCard(user);
+    expect(await screen.findByText("A-042")).toBeInTheDocument();
+
+    await act(() => vi.advanceTimersByTimeAsync(14_000));
+    expect(screen.getByText("A-042")).toBeInTheDocument();
+
+    await act(() => vi.advanceTimersByTimeAsync(1_000));
+    expect(screen.getByRole("button", { name: /start your order/i })).toBeInTheDocument();
+    expect(requests.some((request) => request.method === "DELETE")).toBe(false);
   });
 });
 

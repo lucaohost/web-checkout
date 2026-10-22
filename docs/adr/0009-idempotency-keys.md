@@ -13,9 +13,9 @@ The kiosk's network can drop a response after the server has already acted: the 
 
 ## How the kiosk uses keys
 
-- **One key per Customer intent.** A key is generated when the Customer taps "Confirm order" or "Pay".
-- **Repeats reuse the key.** Resending after a timeout, a dropped connection or an app recovery sends the same key with the same body.
-- **A new intent gets a new key.** Confirming again after a `409` (adjusted prices or quantities, or an edited Cart) and "Try another card" are new intents.
+- **One key per Customer intent.** The confirm key is minted for the Cart as it stands, and the pay key when the Customer taps "Pay".
+- **Repeats reuse the key.** Resending after a timeout, a dropped connection or an app recovery sends the same key with the same body. If every retry of a confirmation loses its response, the next tap of "Confirm order" on an unchanged Cart is that resend.
+- **A new intent gets a new key.** Editing the Cart, confirming again after a `409` (adjusted prices or quantities) and "Try another card" are new intents. Changing the Cart after a confirmation whose response was lost is also a new intent: the kiosk first replays the old key, cancels that Checkout when it is still active, and only then confirms the new Cart. Otherwise the abandoned reservation holds Stock until it expires, and the new body with the old key is a `422`.
 - Keys live in memory next to the Cart; the idle reset discards them.
 
 ## How the server handles a key

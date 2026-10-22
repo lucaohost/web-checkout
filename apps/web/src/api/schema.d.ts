@@ -74,7 +74,7 @@ export interface paths {
                     /** @description A UUID v4, reused when repeating the same request */
                     "idempotency-key": string;
                     "x-kiosk-id"?: string;
-                    /** @description Demo only, ignored in production: forces a payment outcome */
+                    /** @description Demo only. Forwarded when ALLOW_FORCE_ERROR is true; Compose turns it on, and a production process leaves it off. */
                     "x-force-error"?: string;
                 };
                 path: {

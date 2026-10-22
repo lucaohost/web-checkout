@@ -1,4 +1,4 @@
-.PHONY: up down demo test typecheck openapi
+.PHONY: up down demo test typecheck lint openapi
 
 up:
 	docker compose up --build
@@ -22,6 +22,9 @@ typecheck:
 	cd apps/api && npm run typecheck
 	cd apps/payment-mock && npm run typecheck
 	cd apps/web && npm run typecheck
+
+lint:
+	npm run lint
 
 openapi:
 	cd apps/api && npm run openapi
