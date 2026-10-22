@@ -12,15 +12,19 @@ Self-service checkout for a snack bar. A customer walks up to a tablet mounted a
 
 ## Run it
 
-Needs Docker and Node 24. From a Unix machine (or Windows with Docker Desktop):
+Needs Docker and Node 24. There are two ways to open the kiosk. They do not share a port.
+
+**Docker.** From the repo root, on a Unix machine or Windows with Docker Desktop:
 
 ```bash
 docker compose up --build
 ```
 
-Then open [http://localhost:8080](http://localhost:8080). The API is on port 3000 (`/health`, `/docs` for Swagger UI; staff calls take `X-Staff-Key: dev-staff-key`). The payment mock is on port 4000.
+That starts Postgres, the payment mock, the API and the built kiosk. Open [http://localhost:8080](http://localhost:8080). Port 8080 is the `web` container. Nothing listens there until that container is up, so the address stays blank if you only started Postgres or the dev server. The API is on port 3000 (`/health`, `/docs` for Swagger UI; staff calls take `X-Staff-Key: dev-staff-key`). The payment mock is on port 4000.
 
-Compose sets `ALLOW_FORCE_ERROR=true`, so a card outcome can be forced even though the API image runs with `NODE_ENV=production`. On the card screen, **Demo tools** adds the `X-Force-Error` header to the payment request (`declined` or `timeout`). The API forwards that header only when the flag is on. Leave the flag unset in a real deployment and the header is ignored.
+**Local development.** This is a different kiosk, with live reload. Start Postgres with `docker compose up -d postgres`, then `node src/server.ts` in `apps/payment-mock` and in `apps/api`, and `npm run dev` in `apps/web`. Open [http://localhost:5173](http://localhost:5173) (the same site on `127.0.0.1` is allowed). Do not use 8080 in this mode. Stop those three Node processes before `docker compose up`, or the API and the mock will fail to bind ports 3000 and 4000. If port 4000 is already taken, start the mock with `PORT` set to a free port and point the API at it with `PAYMENT_PROVIDER_URL`.
+
+Compose sets `ALLOW_FORCE_ERROR=true`, so a card outcome can be forced even though the API image runs with `NODE_ENV=production`. On the card screen, **Demo tools** adds the `X-Force-Error` header to the payment request (`declined` or `timeout`). The API forwards that header only when the flag is on. Leave the flag unset in a real deployment and the header is ignored. A local API (`node src/server.ts` without `NODE_ENV=production`) forwards the header too.
 
 Starting the API migrates the database and, when the menu tables are empty, fills them. `npm run db:seed` in `apps/api` does that same fill without leaving a server running. A database that already has categories is left alone.
 
@@ -35,11 +39,9 @@ GitHub Actions runs lint, typecheck and the same tests on every push and pull re
 
 Playwright (`npm run e2e` in `apps/web`) needs Docker and a one-time `npx playwright install chromium` in that app. It boots its own Postgres, API, payment mock and kiosk, then pays at the counter, recovers a declined card by paying at pickup, and pays by card. Grafana's Prometheus datasource uid is `prometheus`, and Prometheus scrapes the API on the host's port 3000.
 
-Without Compose, start Postgres (`docker compose up -d postgres`), then `node src/server.ts` in `apps/payment-mock` and `apps/api`, and `npm run dev` in `apps/web`. The dev kiosk is [http://localhost:5173](http://localhost:5173) (the same site on `127.0.0.1` is allowed). If port 4000 is already taken, start the mock with `PORT` set to a free port and point the API at it with `PAYMENT_PROVIDER_URL`.
-
 ## Walkthrough
 
-Use this after `docker compose up --build`. The kiosk is [http://localhost:8080](http://localhost:8080). On the dev server the same clicks happen at [http://localhost:5173](http://localhost:5173). The API is [http://localhost:3000](http://localhost:3000).
+Open the kiosk on the port of the mode you started. After `docker compose up --build`, that is [http://localhost:8080](http://localhost:8080). After `npm run dev`, that is [http://localhost:5173](http://localhost:5173). The clicks are the same. The API is [http://localhost:3000](http://localhost:3000) in both modes.
 
 Set **Demo tools** back to **As the provider decides** between sections, or the next card payment stays forced.
 
